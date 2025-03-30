@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(45deg, #007bff, #6610f2);
+            background: linear-gradient(45deg, #ff4e00, #ff7200);
             color: white;
             display: flex;
             justify-content: center;
@@ -15,80 +15,90 @@
             height: 100vh;
             margin: 0;
         }
-        .panel {
+        .container {
             background-color: #fff;
             padding: 30px;
             border-radius: 10px;
             width: 400px;
             box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
-            color: black;
+            color: #333;
         }
         h2 {
             text-align: center;
-            color: #007bff;
+            color: #ff4e00;
         }
-        .user-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
+        table {
+            width: 100%;
+            margin: 15px 0;
         }
-        .coins-input {
-            width: 60px;
-            margin-left: 10px;
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
         }
-        .btn-update {
-            padding: 5px 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
+        .input-field, .btn {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
             border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .btn {
+            background-color: #ff4e00;
+            color: white;
             cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #e64a19;
         }
     </style>
 </head>
 <body>
-    <div class="panel">
-        <h2>Admin Panel</h2>
-        <div id="user-list"></div>
-    </div>
 
-    <script>
-        async function loadUsers() {
-            const response = await fetch("api.php");
-            const users = await response.json();
-            const userList = document.getElementById("user-list");
-            userList.innerHTML = "";
-            users.forEach(user => {
-                const userItem = document.createElement("div");
-                userItem.className = "user-item";
-                userItem.innerHTML = `
-                    ${user.username} - Coins: 
-                    <input class="coins-input" type="number" value="${user.coins}" id="coins-${user.username}">
-                    <button class="btn-update" onclick="updateCoins('${user.username}')">Update</button>
-                `;
-                userList.appendChild(userItem);
-            });
-        }
+<div class="container">
+    <h2>Admin Panel</h2>
+    <table id="user-table">
+        <tr>
+            <th>Nom d'utilisateur</th>
+            <th>Coins</th>
+        </tr>
+    </table>
+    <input type="text" id="target-username" class="input-field" placeholder="Nom d'utilisateur">
+    <input type="number" id="coins-amount" class="input-field" placeholder="Coins à ajouter">
+    <button class="btn" onclick="addCoins()">Ajouter des Coins</button>
+</div>
 
-        async function updateCoins(username) {
-            const coins = document.getElementById(`coins-${username}`).value;
-            const response = await fetch("api.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ username, coins: parseInt(coins) })
-            });
-            const result = await response.json();
-            if (result.status === "success") {
-                alert(`Coins updated for ${username}`);
-                loadUsers();
-            } else {
-                alert("Error updating coins!");
+<script>
+    function loadUsers() {
+        const table = document.getElementById("user-table");
+        for (let i = 0; i < localStorage.length; i++) {
+            const username = localStorage.key(i);
+            const userData = JSON.parse(localStorage.getItem(username));
+            if (userData && userData.username) {
+                const row = table.insertRow();
+                row.insertCell(0).textContent = userData.username;
+                row.insertCell(1).textContent = userData.coins;
             }
         }
+    }
 
-        window.onload = loadUsers;
-    </script>
+    function addCoins() {
+        const username = document.getElementById("target-username").value;
+        const coinsToAdd = parseInt(document.getElementById("coins-amount").value);
+        const userData = JSON.parse(localStorage.getItem(username));
+
+        if (userData && !isNaN(coinsToAdd)) {
+            userData.coins += coinsToAdd;
+            localStorage.setItem(username, JSON.stringify(userData));
+            alert("Coins ajoutés avec succès !");
+            location.reload();
+        } else {
+            alert("Utilisateur non trouvé ou montant invalide.");
+        }
+    }
+
+    loadUsers();
+</script>
+
 </body>
 </html>
