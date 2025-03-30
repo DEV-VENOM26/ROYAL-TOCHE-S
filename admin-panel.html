@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(45deg, #007bff, #6610f2);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .panel {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            width: 400px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
+            color: black;
+        }
+        h2 {
+            text-align: center;
+            color: #007bff;
+        }
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+        .coins-input {
+            width: 60px;
+            margin-left: 10px;
+        }
+        .btn-update {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h2>Admin Panel</h2>
+        <div id="user-list"></div>
+    </div>
+
+    <script>
+        async function loadUsers() {
+            const response = await fetch("api.php");
+            const users = await response.json();
+            const userList = document.getElementById("user-list");
+            userList.innerHTML = "";
+            users.forEach(user => {
+                const userItem = document.createElement("div");
+                userItem.className = "user-item";
+                userItem.innerHTML = `
+                    ${user.username} - Coins: 
+                    <input class="coins-input" type="number" value="${user.coins}" id="coins-${user.username}">
+                    <button class="btn-update" onclick="updateCoins('${user.username}')">Update</button>
+                `;
+                userList.appendChild(userItem);
+            });
+        }
+
+        async function updateCoins(username) {
+            const coins = document.getElementById(`coins-${username}`).value;
+            const response = await fetch("api.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ username, coins: parseInt(coins) })
+            });
+            const result = await response.json();
+            if (result.status === "success") {
+                alert(`Coins updated for ${username}`);
+                loadUsers();
+            } else {
+                alert("Error updating coins!");
+            }
+        }
+
+        window.onload = loadUsers;
+    </script>
+</body>
+</html>
